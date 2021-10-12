@@ -14,6 +14,7 @@ import androidx.core.content.ContextCompat
 import ru.myus.checkbreath.R
 import java.util.*
 import android.view.TextureView
+import java.util.concurrent.ConcurrentLinkedQueue
 
 
 class SoundView(context: Context, attributeSet: AttributeSet) : TextureView(context,attributeSet),TextureView.SurfaceTextureListener {
@@ -27,7 +28,7 @@ class SoundView(context: Context, attributeSet: AttributeSet) : TextureView(cont
     var barType = BarType.DOUBLED
     var customSizes = false
 
-    private val barList = LinkedList<BarHolder>()
+    @Volatile private var barList = ConcurrentLinkedQueue<BarHolder>()
     private var thread:SoundDataUpdateThread? = null
     private var drawThread:DrawThread? = null
 
@@ -53,6 +54,7 @@ class SoundView(context: Context, attributeSet: AttributeSet) : TextureView(cont
         strokeJoin = Paint.Join.ROUND
         strokeCap = Paint.Cap.ROUND
         isAntiAlias = true
+        isDither = true
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -65,7 +67,7 @@ class SoundView(context: Context, attributeSet: AttributeSet) : TextureView(cont
             centerPadding = lineWidth*2
         }
         linePaint.strokeWidth = lineWidth
-        invalidateBars()
+        //invalidateBars()
     }
 
     private fun invalidateBars(){
@@ -145,11 +147,12 @@ class SoundView(context: Context, attributeSet: AttributeSet) : TextureView(cont
             val startXpos = xPos
             val endXpos = sidePadding + (barWidth)/2 + (barWidth+barGap)*(index).toFloat()
             ValueAnimator.ofFloat(startXpos,endXpos).apply {
-                duration = 180
+                duration = 185
                 interpolator = LinearInterpolator()
                 addUpdateListener { animation ->
                     translateX(xPos-animation.animatedValue as Float)
                 }
+                startDelay = 0
                 start()
             }
         }
@@ -200,13 +203,12 @@ class SoundView(context: Context, attributeSet: AttributeSet) : TextureView(cont
             }
         }
 
-        private fun rotatePath(path: Path):Path{
-            val rPath = Path(path)
+        private fun rotatePath(path: Path):Path= Path(path).apply {
             mMatrix.reset()
-            mMatrix.postRotate((-180).toFloat(), xPos, height/2.toFloat())
-            rPath.transform(mMatrix)
-            return rPath
+            mMatrix.postRotate((180).toFloat(), xPos, height/2.toFloat())
+            transform(mMatrix)
         }
+
     }
 
     inner class DrawThread(private val surfaceTexture: SurfaceTexture, private val textureView: SoundView ) : Thread() {
@@ -257,20 +259,16 @@ class SoundView(context: Context, attributeSet: AttributeSet) : TextureView(cont
         override fun handleMessage(msg: Message): Boolean {
             when (msg.what){
                 MSG_NEW_DATA -> {
-                    synchronized(surfaceTexture) {
-                        if (barList.isNotEmpty()) {
-                            with(barList) {
-                                remove()
-                                forEach { barHolder ->
-                                    barHolder.index--
-                                }
-                                add(BarHolder(barNum - 1, BarType.DOUBLED).also {
-                                    it.animateToValue(
-                                        msg.obj as Float
-                                    )
-                                })
-                            }
+                    with(barList) {
+                        if (isNotEmpty() && size >= barNum) {
+                            remove()
                         }
+                        forEach { barHolder ->
+                            barHolder.index--
+                        }
+                        add(BarHolder(barNum - 1, BarType.DOUBLED).also {
+                            it.animateToValue(msg.obj as Float)
+                        })
                     }
                 }
             }
