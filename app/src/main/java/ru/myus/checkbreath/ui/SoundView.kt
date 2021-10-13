@@ -1,23 +1,20 @@
 package ru.myus.checkbreath.ui
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
-import android.os.Handler
-import android.os.HandlerThread
-import android.os.Message
 import android.util.AttributeSet
-import android.util.Log
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.LinearInterpolator
 import androidx.core.content.ContextCompat
 import ru.myus.checkbreath.R
 import java.util.*
-import android.view.TextureView
-import java.util.concurrent.ConcurrentLinkedQueue
+import android.view.View
 
 
-class SoundView(context: Context, attributeSet: AttributeSet) : TextureView(context,attributeSet),TextureView.SurfaceTextureListener {
+class SoundView(context: Context, attributeSet: AttributeSet) : View(context,attributeSet) {
     var barNum = 50
     var sidePadding = 0.0f
     var topPadding = 0.0f
@@ -27,10 +24,9 @@ class SoundView(context: Context, attributeSet: AttributeSet) : TextureView(cont
     var lineWidth = 0.0f
     var barType = BarType.DOUBLED
     var customSizes = false
+    var animator:ValueAnimator? = null
 
-    @Volatile private var barList = ConcurrentLinkedQueue<BarHolder>()
-    private var thread:SoundDataUpdateThread? = null
-    private var drawThread:DrawThread? = null
+    private val barList = LinkedList<BarHolder>()
 
     enum class BarType{
         SINGLE_LINE,
@@ -38,14 +34,43 @@ class SoundView(context: Context, attributeSet: AttributeSet) : TextureView(cont
     }
 
     init {
-        surfaceTextureListener = this
-        isOpaque = false
     }
 
     private val linePaint = indicatorPaintInactive()
 
     fun animateNext(percentage: Float){
-        thread?.animateNext(percentage)
+        nextValue(percentage)
+    }
+
+    private fun nextValue(percentage: Float){
+        post{
+            with(barList) {
+                if (isNotEmpty() && size > barNum+1) {
+                    remove(first)
+                }
+                animator?.let{
+                    if(it.isRunning) {
+                        it.end()
+                    }
+                }
+                animator = ValueAnimator.ofFloat(0f,1.0f).apply {
+                    duration = 200
+                    interpolator = LinearInterpolator()
+                    forEach { barHolder ->
+                        barHolder.index--
+                        addUpdateListener (barHolder)
+                        addListener(barHolder)
+                    }
+                    addUpdateListener {
+                        invalidate()
+                    }
+                    start()
+                }
+                add(BarHolder(barNum-1, BarType.DOUBLED).also {
+                    it.animateToValue(percentage)
+                })
+            }
+        }
     }
 
     private fun indicatorPaintInactive():Paint = Paint().apply {
@@ -67,7 +92,6 @@ class SoundView(context: Context, attributeSet: AttributeSet) : TextureView(cont
             centerPadding = lineWidth*2
         }
         linePaint.strokeWidth = lineWidth
-        //invalidateBars()
     }
 
     private fun invalidateBars(){
@@ -77,9 +101,9 @@ class SoundView(context: Context, attributeSet: AttributeSet) : TextureView(cont
         }
     }
 
-    fun doDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas?) {
+        super.onDraw(canvas)
         canvas?.let{
-            canvas.drawColor(Color.WHITE,PorterDuff.Mode.CLEAR)
             when (barType){
                 BarType.DOUBLED -> {
                     if (centerPadding > 0) it.drawLine(sidePadding,height/2.toFloat(),
@@ -98,30 +122,30 @@ class SoundView(context: Context, attributeSet: AttributeSet) : TextureView(cont
      @param index indicates position of line bar in soundline diagram
      @param parent represents parent view the bar to be drawn on
      */
-    inner class BarHolder(index:Int, var barType: BarType){
+    inner class BarHolder(index:Int, var barType: BarType):ValueAnimator.AnimatorUpdateListener, AnimatorListenerAdapter() {
         private var line:Path = Path()
         private var barPath:Path = Path()
         private var draft:Path = Path()
         private val barPaint = indicatorPaintInactive()
         private val shadowBarPaint = indicatorPaintInactive()
-        private val mMatrix = Matrix();
-        private var xPos = 0.0f
+        private val mMatrix = Matrix()
+        var xPos = 0.0f
+        private var oldxPos = 0f
         private var barAnim:ValueAnimator? = null
         private lateinit var pathMeasure: PathMeasure
         var value:Float = 0.0f
-
         var index = index
-            set(value){
-                field = value
-                recomputePaths()
-            }
 
         init {
             computeDraftDimensions()
         }
 
-        private fun computeDraftDimensions() {
+        private fun computeXpos(){
             xPos = sidePadding + (barWidth)/2 + (barWidth+barGap)*(index).toFloat()
+        }
+
+        private fun computeDraftDimensions() {
+            computeXpos()
             when (barType){
                 BarType.DOUBLED -> {
                     with(line){
@@ -139,31 +163,29 @@ class SoundView(context: Context, attributeSet: AttributeSet) : TextureView(cont
                     ContextCompat.getColor(context, R.color.accent), Shader.TileMode.MIRROR)
                 color = ContextCompat.getColor(context, R.color.white)
             }
-            //animateToValue( 0.2f + nextFloat() * 1.0f)
-            //animateToValue( 0.1f )
         }
 
-        private fun recomputePaths(){
-            val startXpos = xPos
-            val endXpos = sidePadding + (barWidth)/2 + (barWidth+barGap)*(index).toFloat()
-            ValueAnimator.ofFloat(startXpos,endXpos).apply {
-                duration = 185
-                interpolator = LinearInterpolator()
-                addUpdateListener { animation ->
-                    translateX(xPos-animation.animatedValue as Float)
-                }
-                startDelay = 0
-                start()
-            }
-        }
-
-        private fun translateX(delta: Float){
+        fun translateX(pos:Float){
             mMatrix.reset()
-            mMatrix.postTranslate(-delta,0f)
+            mMatrix.postTranslate(pos-xPos,0f)
             barPath.transform(mMatrix)
             draft.transform(mMatrix)
-            xPos -= delta
-            //invalidate()
+            xPos = pos
+        }
+
+        override fun onAnimationUpdate(animation: ValueAnimator) {
+            translateX(oldxPos-animation.animatedValue as Float *(barGap+barWidth))
+        }
+
+        override fun onAnimationStart(animation: Animator?) {
+            oldxPos = xPos
+        }
+
+        override fun onAnimationEnd(animation: Animator) {
+            animation.removeListener(this)
+            (animation as ValueAnimator).removeUpdateListener(this)
+            computeXpos()
+            translateX(xPos)
         }
 
         fun animateToValue(percentage:Float){
@@ -187,7 +209,7 @@ class SoundView(context: Context, attributeSet: AttributeSet) : TextureView(cont
                     val fraction = animation.animatedValue as Float
                     pathMeasure = PathMeasure(draft,false)
                     pathMeasure.getSegment(0.0f, pathMeasure.length * fraction, barPath, true)
-                    //invalidate()
+                    invalidate()
                 }
                 it.start()
             }
@@ -208,103 +230,5 @@ class SoundView(context: Context, attributeSet: AttributeSet) : TextureView(cont
             mMatrix.postRotate((180).toFloat(), xPos, height/2.toFloat())
             transform(mMatrix)
         }
-
-    }
-
-    inner class DrawThread(private val surfaceTexture: SurfaceTexture, private val textureView: SoundView ) : Thread() {
-        private var myThreadRun = false
-
-        fun setRunning(b: Boolean) {
-            myThreadRun = b
-        }
-
-        override fun run() {
-            while (myThreadRun) {
-                var c: Canvas? = null
-                try {
-                    c = textureView.lockCanvas(null)
-                    //Log.e("DRAW","DRAW")
-                    synchronized(surfaceTexture) { textureView.doDraw(c) }
-                } finally {
-                    if (c != null) {
-                        textureView.unlockCanvasAndPost(c)
-                    }
-                }
-            }
-        }
-    }
-
-    inner class SoundDataUpdateThread(private val surfaceTexture: SurfaceTexture, soundView: SoundView ) : HandlerThread("DrawThread"),Handler.Callback {
-        private val mySurfaceView: SoundView = soundView
-        private lateinit var mReceiver:Handler
-        var c: Canvas? = null
-
-        //val MSG_DRAW = 100
-        val MSG_NEW_DATA = 101
-
-        override fun onLooperPrepared() {
-            mReceiver = Handler(looper, this)
-        }
-
-        override fun quit(): Boolean {
-            mReceiver.removeCallbacksAndMessages(null);
-            return super.quit()
-        }
-
-        fun animateNext(percentage: Float){
-            mReceiver.sendMessage(
-                Message.obtain(mReceiver,MSG_NEW_DATA,percentage))
-        }
-
-        override fun handleMessage(msg: Message): Boolean {
-            when (msg.what){
-                MSG_NEW_DATA -> {
-                    with(barList) {
-                        if (isNotEmpty() && size >= barNum) {
-                            remove()
-                        }
-                        forEach { barHolder ->
-                            barHolder.index--
-                        }
-                        add(BarHolder(barNum - 1, BarType.DOUBLED).also {
-                            it.animateToValue(msg.obj as Float)
-                        })
-                    }
-                }
-            }
-            return true
-        }
-    }
-
-    override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
-        drawThread = DrawThread(surface, this)
-        drawThread?.setRunning(true)
-        drawThread?.start()
-
-        thread = SoundDataUpdateThread(surface, this)
-        thread!!.start()
-    }
-
-    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
-
-    }
-
-    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
-        thread?.quit()
-        thread = null
-
-        var retry = true
-        drawThread?.setRunning(false)
-        while (retry) {
-            try {
-                drawThread?.join()
-                retry = false
-            } catch (e: InterruptedException) {
-            }
-        }
-        return true
-    }
-
-    override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
     }
 }
