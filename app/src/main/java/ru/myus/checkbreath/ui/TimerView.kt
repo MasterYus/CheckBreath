@@ -12,6 +12,7 @@ import android.view.ViewTreeObserver
 import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.core.content.ContextCompat
 import ru.myus.checkbreath.R
+import kotlin.math.exp
 import kotlin.math.min
 
 class TimerView(context: Context, attributeSet: AttributeSet) : View(context,attributeSet) {
@@ -19,12 +20,18 @@ class TimerView(context: Context, attributeSet: AttributeSet) : View(context,att
     private var indicatorRadius = 0.0f
     private var currRadius = 0.0f
     private var circlePaint: Paint = Paint()
+    private var outlinePaint: Paint = Paint()
 
     var animator: ValueAnimator = ValueAnimator.ofFloat(0.9f,1.0f)
 
     init {
         circlePaint.apply{
-            color = ContextCompat.getColor(context, R.color.indicator_inactive_dark)
+            color = ContextCompat.getColor(context, R.color.timer_layer)
+            style = Paint.Style.FILL
+            isAntiAlias = true
+        }
+        outlinePaint.apply{
+            color = ContextCompat.getColor(context, R.color.timer_layer)
             style = Paint.Style.FILL
             isAntiAlias = true
         }
@@ -70,8 +77,8 @@ class TimerView(context: Context, attributeSet: AttributeSet) : View(context,att
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         canvas?.let{
+            it.drawCircle((width/2).toFloat(),(height/2).toFloat(),currRadius*1.2f,outlinePaint)
             it.drawCircle((width/2).toFloat(),(height/2).toFloat(),currRadius,circlePaint)
-            //it.drawCircle((width/2).toFloat(),(height/2).toFloat(),currRadius*0.7f,circlePaint)
         }
     }
 }

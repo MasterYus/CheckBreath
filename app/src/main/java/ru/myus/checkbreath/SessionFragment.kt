@@ -77,8 +77,18 @@ class SessionFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        view.findViewById<View>(R.id.timerClickView).setOnClickListener {
-            startService()
+        view.findViewById<View>(R.id.timerFabView).setOnClickListener {
+            if(mBound && mService.isSessionRunning){
+                mService.stopSession()
+                soundView.flush(true)
+                view.findViewById<View>(R.id.timerClickView).visibility = View.INVISIBLE
+            } else if (mBound && !mService.isSessionRunning){
+                mService.startSession()
+                view.findViewById<View>(R.id.timerClickView).visibility = View.VISIBLE
+            } else {
+                startService()
+                view.findViewById<View>(R.id.timerClickView).visibility = View.VISIBLE
+            }
         }
         soundView = view.findViewById(R.id.soundView)
         timerTxt = view.findViewById(R.id.timer_txt)

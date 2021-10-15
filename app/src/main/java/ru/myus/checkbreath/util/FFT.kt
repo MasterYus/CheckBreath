@@ -1,117 +1,129 @@
 package ru.myus.checkbreath.util
+/*
+OC Volume - Java Speech Recognition Engine
+Copyright (c) 2002-2004, OrangeCow organization
+All rights reserved.
+Redistribution and use in source and binary forms,
+with or without modification, are permitted provided
+that the following conditions are met:
+ * Redistributions of source code must retain the
+above copyright notice, this list of conditions
+and the following disclaimer.
+ * Redistributions in binary form must reproduce the
+above copyright notice, this list of conditions
+and the following disclaimer in the documentation
+and/or other materials provided with the
+distribution.
+ * Neither the name of the OrangeCow organization
+nor the names of its contributors may be used to
+endorse or promote products derived from this
+software without specific prior written
+permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS
+AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
+THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+Contact information:
+Please visit http://ocvolume.sourceforge.net.
+ */
 
-import kotlin.math.cos
-import kotlin.math.sin
-
+/**
+ * Fast Fourier Transform.
+ *
+ * last updated on June 15, 2002<br></br>
+ * **description:** ru.myus.checkbreath.util.FFT class for real signals. Upon entry, N contains the
+ * numbers of points in the DFT, real[] and imaginary[] contain the real and
+ * imaginary parts of the input. Upon return, real[] and imaginary[] contain the
+ * DFT output. All signals run from 0 to N - 1<br></br>
+ * **input:** speech signal<br></br>
+ * **output:** real and imaginary part of DFT output
+ *
+ * @author Danny Su
+ * @author Hanns Holger Rutz
+ */
 
 class FFT {
-    // compute the FFT of x[], assuming its length n is a power of 2
-    fun fft(x: Array<Complex?>): Array<Complex?> {
-        val n = x.size
+    lateinit var real: FloatArray
+    lateinit var imag: FloatArray
 
-        // base case
-        if (n == 1) return arrayOf(x[0])
+    /**
+     * Performs Fast Fourier Transformation in place.
+     */
+    fun process(signal: FloatArray) {
+        val numPoints = signal.size
+        // initialize real & imag array
+        real = signal
+        imag = FloatArray(numPoints)
 
-        require(n % 2 == 0) { "n is not a power of 2" }
-
-        // compute FFT of even terms
-        val even = arrayOfNulls<Complex>(n / 2)
-        for (k in 0 until n / 2) {
-            even[k] = x[2 * k]
-        }
-        val evenFFT = fft(even)
-
-        // compute FFT of odd terms
-        val odd = even.clone(); // reuse the array (to avoid n log n space)
-        for (k in 0 until n / 2) {
-            odd[k] = x[2 * k + 1]
-        }
-        val oddFFT = fft(odd)
-
-        // combine
-        val y = arrayOfNulls<Complex>(n)
-        for (k in 0 until n / 2) {
-            val kth = -2 * k * Math.PI / n
-            val wk = Complex(cos(kth), sin(kth))
-            y[k] = evenFFT[k]!!.plus(wk.times(oddFFT[k]!!))
-            y[k + n / 2] = evenFFT[k]!!.minus(wk.times(oddFFT[k]!!))
-        }
-        return y
-    }
-
-    // compute the inverse FFT of x[], assuming its length n is a power of 2
-    fun ifft(x: Array<Complex?>): Array<Complex?> {
-        val n = x.size
-        var y = arrayOfNulls<Complex>(n)
-
-        // take conjugate
-        for (i in 0 until n) {
-            y[i] = x[i]!!.conjugate()
+        // perform ru.myus.checkbreath.util.FFT using the real & imag array
+        val pi = Math.PI
+        val numStages = (Math.log(numPoints.toDouble()) / Math.log(2.0)).toInt()
+        val halfNumPoints = numPoints shr 1
+        var j = halfNumPoints
+        // ru.myus.checkbreath.util.FFT time domain decomposition carried out by "bit reversal sorting"
+        // algorithm
+        var k: Int
+        for (i in 1 until numPoints - 2) {
+            if (i < j) {
+                // swap
+                val tempReal = real[j]
+                val tempImag = imag[j]
+                real[j] = real[i]
+                imag[j] = imag[i]
+                real[i] = tempReal
+                imag[i] = tempImag
+            }
+            k = halfNumPoints
+            while (k <= j) {
+                j -= k
+                k = k shr 1
+            }
+            j += k
         }
 
-        // compute forward FFT
-        y = fft(y)
-
-        // take conjugate again
-        for (i in 0 until n) {
-            y[i] = y[i]!!.conjugate()
-        }
-
-        // divide by n
-        for (i in 0 until n) {
-            y[i] = y[i]!!.scale(1.0 / n)
-        }
-        return y
-    }
-
-    // compute the circular convolution of x and y
-    fun cconvolve(x: Array<Complex?>, y: Array<Complex?>): Array<Complex?> {
-
-        // should probably pad x and y with 0s so that they have same length
-        // and are powers of 2
-        require(x.size == y.size) { "Dimensions don't agree" }
-        val n = x.size
-
-        // compute FFT of each sequence
-        val a = fft(x)
-        val b = fft(y)
-
-        // point-wise multiply
-        val c = arrayOfNulls<Complex>(n)
-        for (i in 0 until n) {
-            c[i] = a[i]!!.times(b[i]!!)
-        }
-
-        // compute inverse FFT
-        return ifft(c)
-    }
-
-    // compute the linear convolution of x and y
-    fun convolve(x: Array<Complex?>, y: Array<Complex?>): Array<Complex?> {
-        val ZERO = Complex(0.0, 0.0)
-        val a = arrayOfNulls<Complex>(2 * x.size)
-        for (i in x.indices) a[i] = x[i]
-        for (i in x.size until 2 * x.size) a[i] = ZERO
-        val b = arrayOfNulls<Complex>(2 * y.size)
-        for (i in y.indices) b[i] = y[i]
-        for (i in y.size until 2 * y.size) b[i] = ZERO
-        return cconvolve(a, b)
-    }
-
-    // compute the DFT of x[] via brute force (n^2 time)
-    fun dft(x: Array<Complex>): Array<Complex?> {
-        val n = x.size
-        val ZERO = Complex(0.0, 0.0)
-        val y = arrayOfNulls<Complex>(n)
-        for (k in 0 until n) {
-            y[k] = ZERO
-            for (j in 0 until n) {
-                val power = k * j % n
-                val kth = -2 * power * Math.PI / n
-                val wkj = Complex(Math.cos(kth), Math.sin(kth))
-                y[k] = y[k]!!.plus(x[j].times(wkj))
+        // loop for each stage
+        for (stage in 1..numStages) {
+            var LE = 1
+            for (i in 0 until stage) {
+                LE = LE shl 1
+            }
+            val LE2 = LE shr 1
+            var UR = 1.0
+            var UI = 0.0
+            // calculate sine & cosine values
+            val SR = Math.cos(pi / LE2)
+            val SI = -Math.sin(pi / LE2)
+            // loop for each sub DFT
+            for (subDFT in 1..LE2) {
+                // loop for each butterfly
+                var butterfly = subDFT - 1
+                while (butterfly <= numPoints - 1) {
+                    val ip = butterfly + LE2
+                    // butterfly calculation
+                    val tempReal = (real[ip] * UR - imag[ip] * UI).toFloat()
+                    val tempImag = (real[ip] * UI + imag[ip] * UR).toFloat()
+                    real[ip] = real[butterfly] - tempReal
+                    imag[ip] = imag[butterfly] - tempImag
+                    real[butterfly] += tempReal
+                    imag[butterfly] += tempImag
+                    butterfly += LE
+                }
+                val tempUR = UR
+                UR = tempUR * SR - UI * SI
+                UI = tempUR * SI + UI * SR
             }
         }
-        return y
     }
 }

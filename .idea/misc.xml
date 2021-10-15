@@ -3,6 +3,15 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Project/CheckBreath/app/src/main/res/drawable/backdrop_bg.xml" value="0.22135416666666666" />
+        <entry key="..\:/Project/CheckBreath/app/src/main/res/drawable/background.xml" value="0.2140625" />
+        <entry key="..\:/Project/CheckBreath/app/src/main/res/drawable/fab_bg.xml" value="0.22135416666666666" />
+        <entry key="..\:/Project/CheckBreath/app/src/main/res/drawable/ic_graphic_eq_white_24dp.xml" value="0.22135416666666666" />
+        <entry key="..\:/Project/CheckBreath/app/src/main/res/layout/activity_main.xml" value="0.2" />
+        <entry key="..\:/Project/CheckBreath/app/src/main/res/layout/content_main.xml" value="0.20520833333333333" />
+        <entry key="..\:/Project/CheckBreath/app/src/main/res/layout/fragment_second.xml" value="0.19427083333333334" />
+        <entry key="..\:/Project/CheckBreath/app/src/main/res/layout/fragment_session.xml" value="0.22" />
+        <entry key="..\:/Project/CheckBreath/app/src/main/res/menu/navigation.xml" value="0.19791666666666666" />
         <entry key="..\:/Users/YUS/AndroidStudioProjects/CheckBreath/app/src/main/res/drawable/background-accent.xml" value="0.2703125" />
         <entry key="..\:/Users/YUS/AndroidStudioProjects/CheckBreath/app/src/main/res/drawable/background.xml" value="0.21666666666666667" />
         <entry key="..\:/Users/YUS/AndroidStudioProjects/CheckBreath/app/src/main/res/drawable/background_accent.xml" value="0.2703125" />

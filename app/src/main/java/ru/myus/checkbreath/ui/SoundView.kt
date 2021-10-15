@@ -12,13 +12,15 @@ import androidx.core.content.ContextCompat
 import ru.myus.checkbreath.R
 import java.util.*
 import android.view.View
+import android.view.animation.DecelerateInterpolator
 
 
 class SoundView(context: Context, attributeSet: AttributeSet) : View(context,attributeSet) {
-    var barNum = 50
+    var barNum = 60
     var sidePadding = 0.0f
     var topPadding = 0.0f
     var centerPadding = 0.0f
+    val drawCenterLine = true
     var barGap = 5.0f
     var barWidth = 0.0f
     var lineWidth = 0.0f
@@ -26,35 +28,36 @@ class SoundView(context: Context, attributeSet: AttributeSet) : View(context,att
     var customSizes = false
     var animator:ValueAnimator? = null
 
+    val valueAnimatorDuration:Long = 700
+    val nextValueAnimatorDuration:Long = 250
+
     private val barList = LinkedList<BarHolder>()
+    private val linePaint = indicatorPaintInactive()
+
 
     enum class BarType{
         SINGLE_LINE,
         DOUBLED
     }
 
-    init {
-    }
-
-    private val linePaint = indicatorPaintInactive()
-
+    /**
+     * Method for adding new value line to the soundline.
+     * Can be called from non-ui threads.
+     * @param percentage amplitude value in range from 0 to 1
+     */
     fun animateNext(percentage: Float){
-        nextValue(percentage)
-    }
-
-    private fun nextValue(percentage: Float){
         post{
             with(barList) {
-                if (isNotEmpty() && size > barNum+1) {
-                    remove(first)
-                }
                 animator?.let{
                     if(it.isRunning) {
                         it.end()
                     }
                 }
+                add(BarHolder(barNum, BarType.DOUBLED).also {
+                    it.animateToValue(percentage)
+                })
                 animator = ValueAnimator.ofFloat(0f,1.0f).apply {
-                    duration = 200
+                    duration = nextValueAnimatorDuration
                     interpolator = LinearInterpolator()
                     forEach { barHolder ->
                         barHolder.index--
@@ -66,20 +69,20 @@ class SoundView(context: Context, attributeSet: AttributeSet) : View(context,att
                     }
                     start()
                 }
-                add(BarHolder(barNum-1, BarType.DOUBLED).also {
-                    it.animateToValue(percentage)
-                })
+                if (isNotEmpty() && size > barNum+1) {
+                    remove(first)
+                }
             }
         }
     }
 
     private fun indicatorPaintInactive():Paint = Paint().apply {
-        color = ContextCompat.getColor(context, R.color.indicator_inactive_dark)
+        color = ContextCompat.getColor(context, R.color.sound_view_indicator)
         style = Paint.Style.STROKE
         strokeJoin = Paint.Join.ROUND
         strokeCap = Paint.Cap.ROUND
         isAntiAlias = true
-        isDither = true
+        //isDither = true
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -87,14 +90,18 @@ class SoundView(context: Context, attributeSet: AttributeSet) : View(context,att
         if(!customSizes){
             sidePadding = 0.0f
             barWidth = (w - 2*sidePadding + barGap)/barNum.toFloat()-barGap
-            topPadding = w*0.2f
+            topPadding = w*0.1f
             lineWidth = barWidth/2
             centerPadding = lineWidth*2
         }
         linePaint.strokeWidth = lineWidth
     }
 
-    private fun invalidateBars(){
+    /**
+     * Absolutely unnecessary method for initializing scope of bar lines
+     * TODO: remove or implement random init
+     */
+    fun invalidateBars(){
         if(barList.isNotEmpty()) barList.clear()
         for (i in 0 until barNum){
             barList.add(BarHolder(i,barType))
@@ -106,7 +113,7 @@ class SoundView(context: Context, attributeSet: AttributeSet) : View(context,att
         canvas?.let{
             when (barType){
                 BarType.DOUBLED -> {
-                    if (centerPadding > 0) it.drawLine(sidePadding,height/2.toFloat(),
+                    if (centerPadding > 0 && drawCenterLine) it.drawLine(sidePadding,height/2.toFloat(),
                             width-sidePadding,height/2.toFloat(),linePaint)
                 }
                 BarType.SINGLE_LINE -> TODO()
@@ -118,23 +125,39 @@ class SoundView(context: Context, attributeSet: AttributeSet) : View(context,att
     }
 
     /**
-     * Helper class for visualizing bars in sound wave
-     @param index indicates position of line bar in soundline diagram
-     @param parent represents parent view the bar to be drawn on
+     * Method for clearing the soundline.
+     * @param withAnimation toggles flush animation.
      */
-    inner class BarHolder(index:Int, var barType: BarType):ValueAnimator.AnimatorUpdateListener, AnimatorListenerAdapter() {
+    fun flush(withAnimation: Boolean){
+        animator?.end()
+        if(withAnimation){
+            barList.forEach{
+                it.animateToValue(0.0f)
+            }
+        } else {
+            barList.clear()
+            invalidate()
+        }
+    }
+
+    /**
+     * Helper class for visualizing bars in sound wave.
+     * @param index indicates position of line bar in a soundline diagram
+     * @param barType represents type of the bar line (doubled or TODO:single)
+     */
+    inner class BarHolder(var index: Int, var barType: BarType):ValueAnimator.AnimatorUpdateListener, AnimatorListenerAdapter() {
         private var line:Path = Path()
         private var barPath:Path = Path()
-        private var draft:Path = Path()
         private val barPaint = indicatorPaintInactive()
         private val shadowBarPaint = indicatorPaintInactive()
         private val mMatrix = Matrix()
-        var xPos = 0.0f
+
         private var oldxPos = 0f
+        var xPos = 0.0f
+        var value:Float = 0.0f
+
         private var barAnim:ValueAnimator? = null
         private lateinit var pathMeasure: PathMeasure
-        var value:Float = 0.0f
-        var index = index
 
         init {
             computeDraftDimensions()
@@ -158,18 +181,18 @@ class SoundView(context: Context, attributeSet: AttributeSet) : View(context,att
             }
             with(barPaint){
                 strokeWidth = barWidth.also { shadowBarPaint.strokeWidth = it }
-                barPaint.shader = LinearGradient(0f, 0f, 0f, height.toFloat()-topPadding,
+                /*barPaint.shader = LinearGradient(0f, 0f, 0f, height.toFloat()-topPadding,
                     ContextCompat.getColor(context, R.color.accent_variant),
                     ContextCompat.getColor(context, R.color.accent), Shader.TileMode.MIRROR)
-                color = ContextCompat.getColor(context, R.color.white)
+                 */
             }
         }
 
-        fun translateX(pos:Float){
+        private fun translateX(pos:Float){
             mMatrix.reset()
             mMatrix.postTranslate(pos-xPos,0f)
             barPath.transform(mMatrix)
-            draft.transform(mMatrix)
+            line.transform(mMatrix)
             xPos = pos
         }
 
@@ -188,26 +211,27 @@ class SoundView(context: Context, attributeSet: AttributeSet) : View(context,att
             translateX(xPos)
         }
 
+        /**
+         * Method for animating current bar line
+         * @param percentage amplitude value in range from 0 to 1
+         */
         fun animateToValue(percentage:Float){
-            value = percentage
-            // get line footprint measure
-            pathMeasure = PathMeasure(line, false)
-            // get draft to animate current value
-            draft.reset()
-            pathMeasure.getSegment(0.0f, pathMeasure.length * value, draft, true)
             if (barAnim?.isRunning == true) {
-                barAnim!!.cancel()
+                barAnim!!.end()
+                barAnim!!.removeAllListeners()
             }
             barPath.reset()
-            barAnim = ValueAnimator.ofFloat(0.0f, 1.0f).apply {
-                duration = 700
-                repeatCount = 1
+            barAnim = ValueAnimator.ofFloat(value, percentage).apply {
+                duration = valueAnimatorDuration
                 interpolator = AccelerateDecelerateInterpolator()
+                //interpolator = DecelerateInterpolator()
             }
+            value = percentage
             barAnim?.let {
                 it.addUpdateListener { animation ->
+                    barPath.reset()
                     val fraction = animation.animatedValue as Float
-                    pathMeasure = PathMeasure(draft,false)
+                    pathMeasure = PathMeasure(line,false)
                     pathMeasure.getSegment(0.0f, pathMeasure.length * fraction, barPath, true)
                     invalidate()
                 }
@@ -225,6 +249,10 @@ class SoundView(context: Context, attributeSet: AttributeSet) : View(context,att
             }
         }
 
+        /**
+         * Method for rotating Path by 180 degrees. Used for bar lines reflection (doubling)
+         * @param path path to rotate using Matrix
+         */
         private fun rotatePath(path: Path):Path= Path(path).apply {
             mMatrix.reset()
             mMatrix.postRotate((180).toFloat(), xPos, height/2.toFloat())

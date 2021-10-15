@@ -4,14 +4,9 @@
         <shape android:shape="oval">
             <gradient
                 android:type="linear"
-                android:angle="45"
+                android:angle="-45"
                 android:startColor="@color/accent"
                 android:endColor="@color/accent_variant" />
         </shape>
-
-    </item>
-    <item android:gravity="center" >
-        <bitmap android:src="@drawable/ic_mic_black_24dp" android:tint="@color/white"
-            android:gravity="fill_horizontal" />
     </item>
 </layer-list>

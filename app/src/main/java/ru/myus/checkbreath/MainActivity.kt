@@ -5,6 +5,10 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.fragment.app.FragmentContainerView
+import com.google.android.material.bottomappbar.BottomAppBar
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 
@@ -14,9 +18,21 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
+        val bottomList = findViewById<FragmentContainerView>(R.id.backdrop)
+        val behavior:BottomSheetBehavior<FragmentContainerView> = BottomSheetBehavior.from(bottomList)
         val fab = findViewById<FloatingActionButton>(R.id.fab)
         fab.setOnClickListener { view ->
-
+        }
+        findViewById<BottomNavigationView>(R.id.navigation).setOnItemSelectedListener {
+            when (it.itemId){
+                R.id.navigation_home -> {
+                    behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                }
+                R.id.navigation_list -> {
+                    behavior.state = BottomSheetBehavior.STATE_COLLAPSED
+                }
+            }
+            true
         }
     }
 

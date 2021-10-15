@@ -8,8 +8,12 @@ import android.media.AudioRecord
 import android.os.IBinder
 import android.os.Binder
 import android.media.MediaRecorder
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import java.io.IOException
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.util.*
 import kotlin.concurrent.schedule
 import kotlin.concurrent.thread
@@ -26,31 +30,58 @@ class AudioCaptureService : Service() {
     private val sampleRate = 16000 //41000
     private val audioFormat = AudioFormat.ENCODING_PCM_16BIT
     private val channelConfig = AudioFormat.CHANNEL_IN_MONO
-    private val minBufSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)*5
+    private val minBufSize = 8192//AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)*5
     private var status = true
     private lateinit var mBinderListener: BoundAudioServiceListener
-    lateinit var mainThread:Thread;
+    var mainThread:Thread? = null
+    lateinit var timer: Timer
+    var isSessionRunning = false
+
+    var sampleCounter = 0
+    private var frame: ByteArray? = null
+
+    val mfcc=MFCC(1000,sampleRate.toDouble(),12)
+    val energy = Energy()
+
     var sessionTimeMs:Long = 0
 
     private val mBinder = ServiceBinder()
     override fun onCreate() {
         super.onCreate()
-        startCapture()
-        startTimer()
+        startSession()
+    }
+
+    fun startSession(){
+        if (!isSessionRunning){
+            startTimer()
+            status = true
+            startCapture()
+            isSessionRunning = true
+        }
+    }
+
+    fun stopSession(){
+        if(isSessionRunning){
+            timer.cancel()
+            stopThread()
+            isSessionRunning = false
+        }
     }
 
     fun startTimer(){
-        Timer("SessionTimer", false).scheduleAtFixedRate( timerTask {
-            sessionTimeMs += 1
-            mBinderListener.onTimerTick(sessionTimeMs)
-        },100,100)
+        sessionTimeMs = 0
+        timer = Timer("SessionTimer", false).also {
+            it.scheduleAtFixedRate(timerTask {
+                sessionTimeMs += 1
+                mBinderListener.onTimerTick(sessionTimeMs)
+            }, 100, 100)
+        }
     }
-
 
     private fun startCapture(){
         mainThread = Thread {
             try {
-                audioBuffer = ByteArray(minBufSize);
+                audioBuffer = ByteArray(minBufSize)
                 Log.d("audioRecord", "Buffer created of size $minBufSize");
 
                 recorder = AudioRecord(
@@ -64,7 +95,18 @@ class AudioCaptureService : Service() {
                 recorder!!.startRecording();
 
                 while (status) {
-                    recorder!!.read(audioBuffer!!, 0, audioBuffer!!.size);
+                    recorder!!.read(audioBuffer!!, 0,minBufSize)
+                    frame = if (frame == null && getRMS(audioBuffer!!) > 20){
+                        audioBuffer!!.clone()
+                    } else {
+                        frame?.plus(audioBuffer!!)
+                    }
+                    frame?.let {
+                        if (it.size >= 32768){
+                            processFrame()
+                            frame = null
+                        }
+                    }
                     mBinderListener.onAudioPacketRecorded(audioBuffer!!, recorder!!)
                 }
 
@@ -75,10 +117,20 @@ class AudioCaptureService : Service() {
         }.apply { start() }
     }
 
-    fun stopThread(){
+    fun processFrame(){
+        val data = toFloats(toShortArray(frame!!))
+        val result = mfcc.process(data)
+        Log.e("Processed", "processFrame: ${result.joinToString(" ")}")
+        Log.e("Processed", "processFrame: ${energy.calcEnergy(data)}")
+    }
+
+    private fun stopThread(){
         if (status) {
-            mainThread.join()
             status = false
+            mainThread?.join()
+            recorder?.release()
+            frame = null
+            mainThread = null
         }
     }
 
@@ -92,13 +144,12 @@ class AudioCaptureService : Service() {
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
-        stopThread()
         return super.onUnbind(intent)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        stopThread()
+        stopSession()
     }
 
     inner class ServiceBinder : Binder() {
@@ -117,6 +168,20 @@ class AudioCaptureService : Service() {
             }
             //RMS amplitude
             return sqrt(sum / pcmData.size)
+        }
+        fun toFloats(pcms: ShortArray): FloatArray? {
+            val floaters = FloatArray(pcms.size)
+            for (i in pcms.indices) {
+                floaters[i] = pcms[i].toFloat()
+            }
+            return floaters
+        }
+        fun toShortArray(byteArray: ByteArray):ShortArray = ShortArray(byteArray.size / 2).also {
+            with(ByteBuffer.wrap(byteArray)){
+                asShortBuffer().get(it)
+                order(ByteOrder.LITTLE_ENDIAN)
+                asShortBuffer()[it]
+            }
         }
     }
 }

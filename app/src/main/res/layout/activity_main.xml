@@ -2,7 +2,6 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="@drawable/background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
@@ -23,15 +22,28 @@
             app:popupTheme="@style/Theme.CheckBreath.PopupOverlay" />
 
     </com.google.android.material.appbar.AppBarLayout>
-
-    <include layout="@layout/content_main" />
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/listFragment"
+        android:name="ru.myus.checkbreath.ListFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    </androidx.fragment.app.FragmentContainerView>
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/backdrop"
+        android:background="@drawable/backdrop_bg"
+        android:name="ru.myus.checkbreath.SessionFragment"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        app:behavior_skipCollapsed="true"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+    </androidx.fragment.app.FragmentContainerView>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fab_margin"
-        app:backgroundTint="@color/accent_variant"
+        app:backgroundTint="@color/red"
         app:srcCompat="@drawable/ic_mic_black_24dp"
         app:layout_anchor="@id/bottom_bar" />
     <com.google.android.material.bottomappbar.BottomAppBar
@@ -39,10 +51,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
+        app:elevation="0dp"
         app:contentInsetStart="0dp"
         app:fabAnimationMode="scale"
-        app:fabCradleMargin="8dp"
-        app:backgroundTint="#272842"
+        app:fabCradleMargin="12dp"
+        app:backgroundTint="@color/bg_secondary"
         app:fabAlignmentMode="center">
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
