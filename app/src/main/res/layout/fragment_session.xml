@@ -5,7 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
-    tools:context=".SessionFragment">
+    tools:context=".SessionFragment"
+    android:clickable="true"
+    android:focusable="true">
 
     <ru.myus.checkbreath.ui.SoundView
         android:id="@+id/soundView"
@@ -22,7 +24,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/timerClickView"
         app:cardCornerRadius="150dp"
-        app:cardElevation="20dp"
+        app:cardElevation="16dp"
         android:clickable="true"
         android:focusable="true"
         android:foreground="?selectableItemBackground">
@@ -67,7 +69,6 @@
                 android:layout_gravity="center"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/josefin_sans_bold"
                 android:textSize="20sp"
                 android:textColor="@color/white"
                 app:layout_constraintTop_toBottomOf="@+id/timer_txt"
@@ -87,15 +88,25 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/hintTxt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="50dp"
         android:fontFamily="@font/josefin_sans_bold"
-        android:text="Press F to pay respect"
+        android:text="@string/press_to_start"
         android:textColor="@color/white"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="@+id/timerClickView"
         app:layout_constraintStart_toStartOf="@+id/timerClickView"
-        app:layout_constraintTop_toBottomOf="@+id/timerClickView" />
+        app:layout_constraintTop_toBottomOf="@+id/timerFabView" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_drag"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/text_on_gary_dark" />
 </androidx.constraintlayout.widget.ConstraintLayout>

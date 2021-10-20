@@ -2,6 +2,7 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
@@ -10,24 +11,51 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:elevation="0dp"
+        app:expanded="true"
         android:background="@android:color/transparent"
         android:theme="@style/Theme.CheckBreath.AppBarOverlay">
-
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <com.google.android.material.appbar.CollapsingToolbarLayout
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@android:color/transparent"
-            android:elevation="0dp"
-            app:popupTheme="@style/Theme.CheckBreath.PopupOverlay" />
-
+            android:layout_height="wrap_content"
+            app:expandedTitleGravity="top|center"
+            app:expandedTitleMarginStart="48dp"
+            app:expandedTitleMarginEnd="64dp"
+            app:layout_scrollFlags="scroll|enterAlwaysCollapsed|snap">
+            <include layout="@layout/fast_stats"/>
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@android:color/transparent"
+                android:elevation="0dp"
+                android:gravity="center"
+                app:popupTheme="@style/Theme.CheckBreath.PopupOverlay">
+                <TextView
+                    android:id="@+id/toolbar_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_name"
+                    style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title" />
+            </androidx.appcompat.widget.Toolbar>
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
+
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/listFragment"
         android:name="ru.myus.checkbreath.ListFragment"
+        app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
     </androidx.fragment.app.FragmentContainerView>
+
+    <View
+        android:id="@+id/dimmer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:background="@android:color/transparent"
+        android:clickable="true"/>
+
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/backdrop"
         android:background="@drawable/backdrop_bg"
@@ -44,7 +72,8 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fab_margin"
         app:backgroundTint="@color/red"
-        app:srcCompat="@drawable/ic_mic_black_24dp"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_manual_record_black_24dp"
         app:layout_anchor="@id/bottom_bar" />
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottom_bar"
@@ -57,14 +86,16 @@
         app:fabCradleMargin="12dp"
         app:backgroundTint="@color/bg_secondary"
         app:fabAlignmentMode="center">
-
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/navigation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
             app:elevation="0dp"
+            app:itemIconTint="@color/nav_button_color"
+            app:itemTextColor="@color/nav_button_color"
             app:menu="@menu/navigation" />
     </com.google.android.material.bottomappbar.BottomAppBar>
+    <include layout="@layout/session_modal"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

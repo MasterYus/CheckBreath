@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/ListItemCardStyle"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?selectableItemBackground"
+    android:layout_width="match_parent"
+    android:layout_height="80dp">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/vertical_padding_start"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            app:layout_constraintGuide_begin="16dp"/>
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/vertical_padding_end"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            app:layout_constraintGuide_end="16dp"/>
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/horizontal_padding"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_begin="16dp" />
+
+        <TextView
+            android:id="@+id/item_title_name"
+            style="@style/ListItemTextStyle.Normal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Session 1"
+            app:layout_constraintStart_toStartOf="@id/vertical_padding_start"
+            app:layout_constraintTop_toTopOf="@+id/horizontal_padding" />
+
+        <TextView
+            android:id="@+id/item_title_date"
+            style="@style/ListItemTextStyle.Body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Session 1"
+            app:layout_constraintStart_toStartOf="@id/vertical_padding_start"
+            app:layout_constraintTop_toBottomOf="@+id/item_title_name" />
+
+        <TextView
+            android:id="@+id/item_title_time"
+            style="@style/ListItemTextStyle.Normal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:text="03:54"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/more_image_view"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/more_image_view"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/vertical_padding_end"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_more_vert_black_24dp"
+            app:tint="@color/on_grey_white" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>

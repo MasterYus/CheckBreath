@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt" >
+    <aapt:attr name="android:drawable">
+        <vector
+            android:height="24dp"
+            android:width="24dp"
+            android:viewportHeight="24"
+            android:viewportWidth="24" >
+            <group
+                android:name="scale"
+                android:pivotX="12"
+                android:pivotY="12">
+                <path
+                    android:pathData="M12,12m-8,0a8,8 0,1 1,16 0a8,8 0,1 1,-16 0"
+                    android:fillColor="#000000"/>
+            </group>
+        </vector>
+    </aapt:attr>
+
+    <target android:name="scale">
+        <aapt:attr name="android:animation">
+            <set android:ordering="together">
+                <objectAnimator
+                    android:interpolator="@android:interpolator/accelerate_decelerate"
+                    android:duration="700"
+                    android:repeatCount="infinite"
+                    android:propertyName="scaleX"
+                    android:repeatMode="reverse"
+                    android:valueFrom="0.9"
+                    android:valueTo="1.2" />
+                <objectAnimator
+                    android:interpolator="@android:interpolator/accelerate_decelerate"
+                    android:duration="700"
+                    android:repeatCount="infinite"
+                    android:propertyName="scaleY"
+                    android:repeatMode="reverse"
+                    android:valueFrom="0.9"
+                    android:valueTo="1.2" />
+            </set>
+        </aapt:attr>
+    </target>
+</animated-vector>

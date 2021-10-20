@@ -14,6 +14,12 @@ import java.util.*
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 
+/**
+ * Custom animated View element to visualize sound amplitude
+ * using raw Canvas software-accelerated drawing
+ *
+ * @author Alex @MasterYus Yusifov 2021
+ */
 
 class SoundView(context: Context, attributeSet: AttributeSet) : View(context,attributeSet) {
     var barNum = 60
@@ -29,7 +35,7 @@ class SoundView(context: Context, attributeSet: AttributeSet) : View(context,att
     var animator:ValueAnimator? = null
 
     val valueAnimatorDuration:Long = 700
-    val nextValueAnimatorDuration:Long = 250
+    val nextValueAnimatorDuration:Long = 300
 
     private val barList = LinkedList<BarHolder>()
     private val linePaint = indicatorPaintInactive()
@@ -82,7 +88,6 @@ class SoundView(context: Context, attributeSet: AttributeSet) : View(context,att
         strokeJoin = Paint.Join.ROUND
         strokeCap = Paint.Cap.ROUND
         isAntiAlias = true
-        //isDither = true
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {

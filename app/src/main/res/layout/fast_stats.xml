@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<HorizontalScrollView
+    android:layout_marginTop="?actionBarSize"
+    android:id="@+id/activity_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:overScrollMode="never"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <GridLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:useDefaultMargins="true"
+        android:rowCount = "3">
+        <androidx.cardview.widget.CardView
+            android:layout_width="120dp"
+            android:layout_height="160dp"
+            app:contentPadding="16dp"
+            style="@style/ActivityCardStyle">
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/on_grey_white"
+                    android:text ="@string/total_sessions"/>
+                <ImageView
+                    android:layout_width="40dp"
+                    app:tint= "@color/on_grey_white"
+                    app:srcCompat ="@drawable/ic_show_chart_black_24dp"
+                    android:layout_height="40dp"/>
+                <TextView
+                    android:id="@+id/session_counter"
+                    android:textColor="@color/on_grey_white"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Headline3"
+                    android:text = "0"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+        <androidx.cardview.widget.CardView
+            android:layout_width="120dp"
+            android:layout_height="160dp"
+            app:contentPadding="16dp"
+            style="@style/ActivityCardStyle">
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/on_grey_white"
+                    android:text ="@string/sessions_today"/>
+                <ImageView
+                    android:layout_width="40dp"
+                    app:tint= "@color/on_grey_white"
+                    app:srcCompat ="@drawable/ic_scatter_plot_black_24dp"
+                    android:layout_height="40dp"/>
+                <TextView
+                    android:id="@+id/session_counter_today"
+                    android:textColor="@color/on_grey_white"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Headline3"
+                    android:text = "0"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+        <androidx.cardview.widget.CardView
+            android:layout_width="120dp"
+            android:layout_height="160dp"
+            app:cardBackgroundColor="@color/yellow"
+            app:contentPadding="16dp"
+            style="@style/ActivityCardStyle">
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <TextView
+                    android:textColor="@color/black"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text ="@string/coming_soon"/>
+                <ImageView
+                    android:layout_gravity="center_horizontal"
+                    android:layout_width="40dp"
+                    app:srcCompat ="@drawable/ic_insights_black_24dp"
+                    android:layout_height="40dp"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+    </GridLayout>
+</HorizontalScrollView>
