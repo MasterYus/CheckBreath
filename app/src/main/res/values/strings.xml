@@ -9,9 +9,24 @@
 
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
-    <string name="logo_footer">We know when how you breath (^_^)\nThe. APP. by. YUS</string>
+    <string name="logo_footer">We know when and how you breathe (^_^)\nThe. APP. by. YUS</string>
     <string name="big_logo">Check\n Breath</string>
     <string name="title_home">Home</string>
     <string name="title_list">My sessions</string>
     <string name="action_require_mic">Microphone permission required!</string>
+    <string name="my_activity">My activity</string>
+    <string name="my_session">My sessions</string>
+    <string name="snack_bar_undo">Undo</string>
+    <string name="snack_bar_text">Deleted 1 item</string>
+    <string name="input_name">Input session name</string>
+    <string name="cancel">Cancel</string>
+    <string name="title_save">Save session</string>
+    <string name="press_to_start">Click big button above to start session</string>
+    <string name="email">Email</string>
+    <string name="inhale">Inhale</string>
+    <string name="exhale">Exhale</string>
+    <string name="total_sessions">Total sessions</string>
+    <string name="sessions_today">Sessions today</string>
+    <string name="coming_soon">Coming soon!</string>
+    <string name="email_subject">My session: %1$s</string>
 </resources>

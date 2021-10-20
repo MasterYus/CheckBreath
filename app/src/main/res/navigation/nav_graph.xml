@@ -19,7 +19,7 @@
         android:id="@+id/SecondFragment"
         android:name="ru.myus.checkbreath.ListFragment"
         android:label="@string/second_fragment_label"
-        tools:layout="@layout/fragment_second">
+        tools:layout="@layout/fragment_list">
 
         <action
             android:id="@+id/action_SecondFragment_to_FirstFragment"

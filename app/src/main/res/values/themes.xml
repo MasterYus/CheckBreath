@@ -14,7 +14,68 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="textInputStyle">@style/EditTextStyle</item>
         <!-- Customize your theme here. -->
+    </style>
+
+    <style name="AlertDialogTheme" parent="Theme.MaterialComponents.Dialog.Alert">
+        <item name="backgroundColor">@color/grey_dark</item>
+        <item name="android:background">@color/grey_dark</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Alert.Button.Positive</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Alert.Button.Neutral</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Alert.Button.Neutral</item>
+    </style>
+
+    <style name="EditTextStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+        <item name="backgroundColor">@color/grey_dark</item>
+        <item name="boxStrokeColor">@color/edit_text_color</item>
+        <item name="hintTextColor">@color/edit_text_color</item>
+        <item name="placeholderTextColor">@color/text_on_gary_dark</item>
+        <item name="android:textColor">@color/edit_text_color</item>
+    </style>
+
+    <style name="Alert.Button.Positive" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="backgroundTint">@android:color/transparent</item>
+        <item name="rippleColor">@color/red</item>
+        <item name="android:textColor">@color/dialog_positive_color</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="Alert.Button.Neutral" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="backgroundTint">@android:color/transparent</item>
+        <item name="rippleColor">@color/on_grey_white</item>
+        <item name="android:textColor">@color/on_grey_white</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="ActivityCardStyle" parent="CardView">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">8dp</item>
+        <item name="cardBackgroundColor">@color/on_grey</item>
+        <item name="android:layout_margin">8dp</item>
+    </style>
+
+    <style name="ListItemCardStyle" parent="CardView">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">6dp</item>
+        <item name="cardBackgroundColor">@color/on_grey</item>
+        <item name="android:layout_margin">8dp</item>
+    </style>
+
+    <style name="LabelTextStyle" parent="TextAppearance.MaterialComponents.Headline1">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/on_grey_white</item>
+    </style>
+
+    <style name="ListItemTextStyle.Normal" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/on_grey_white</item>
+    </style>
+
+    <style name="ListItemTextStyle.Body" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/text_on_gary_dark</item>
     </style>
 
     <style name="Theme.CheckBreath.NoActionBar">
